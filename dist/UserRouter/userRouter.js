@@ -76,42 +76,48 @@ router.get('/signin', (req, res) => __awaiter(void 0, void 0, void 0, function* 
 }));
 // uszer can update email or password
 const updateSchema = zod_1.z.object({
+    name: zod_1.z.string().optional(),
     email: zod_1.z.string().email().optional(),
-    password: zod_1.z.string(),
-    name: zod_1.z.string()
+    password: zod_1.z.string().min(6).optional(),
 });
 router.put('/update', auth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const parsedData = updateSchema.parse(req.body);
-    const { email, name, password } = parsedData;
-    const id = req.userId;
-    if (!id) {
-        return res.status(400).json('something error');
-    }
-    const user = prisma.user.findUnique({
-        where: {
-            id: id
+    try {
+        const parsedData = updateSchema.parse(req.body);
+        const { email, name, password } = parsedData;
+        const id = req.userId;
+        if (!id) {
+            return res.status(400).json({ error: 'User ID is not provided' });
         }
-    });
-    if (!user) {
-        return res.status(400).json("user not exist");
+        const user = yield prisma.user.findUnique({
+            where: {
+                id: Number(id),
+            },
+        });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        const updateUser = {};
+        if (name) {
+            updateUser.name = name;
+        }
+        if (email) {
+            updateUser.email = email;
+        }
+        if (password) {
+            const hashedPassword = yield bcrypt.hash(password, 10);
+            updateUser.password = hashedPassword;
+        }
+        yield prisma.user.update({
+            where: {
+                id: Number(id),
+            },
+            data: updateUser,
+        });
+        res.status(200).json({ message: 'Record updated successfully' });
     }
-    const updateuser = {};
-    if (name) {
-        updateuser.name = name;
+    catch (error) {
+        console.error('Error updating user:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
-    if (email) {
-        updateuser.email = email;
-    }
-    if (password) {
-        const hashpassword = yield bcrypt.hash(password, 10);
-        updateuser.passsword = hashpassword;
-    }
-    yield prisma.user.update({
-        where: {
-            id: id
-        },
-        data: updateuser
-    });
-    res.status(200).json({ message: "record updated successfully" });
 }));
 exports.default = router;

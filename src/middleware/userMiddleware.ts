@@ -20,8 +20,9 @@ export const auth = async (req: CustomRequest, res: Response, next: NextFunction
   }
 
   try {
-    const decode = jwt.verify(token, jwt_secret) as { id: number };
-    req.userId = decode.id;
+    const decode = jwt.verify(token, jwt_secret) as { userId: number };
+    req.userId = decode.userId;
+   
     next();
   } catch (error) {
     res.status(401).json({ error: "Invalid token" });

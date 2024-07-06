@@ -30,7 +30,7 @@ router.get('/allpost',async (req:Request,res:Response)=>{
 const postSchema=z.object({
     title:z.string(),
     content:z.string(),
-    published:z.boolean()
+    published:z.boolean().optional()
 
 })
 router.post('/createPost',auth,async (req:Request,res:Response)=>{
@@ -73,13 +73,13 @@ res.status(200).json(post);
 })
 
 // delete post
-router.delete('/deletpost',auth,async(req:Request,res:Response)=>{
+router.delete('/deletpost/:postId',auth,async(req:Request,res:Response)=>{
     const userId=(req as any).userId;
-    const {postId}=req.body;
+    const {postId}=req.params ;
     // here we have need to check the author of post should be same as the login user;
 
      const post=await prisma.post.findUnique({where:{
-        id:postId
+        id:Number(postId)
      }})
      if(!post){
         return res.status(400)
@@ -90,7 +90,7 @@ router.delete('/deletpost',auth,async(req:Request,res:Response)=>{
   }
     await prisma.post.delete({
         where:{
-            id:postId,
+            id:Number(postId),
        
         }
     })
@@ -103,12 +103,13 @@ const postUpdateSchema=z.object({
     content:z.string().optional(),
     published:z.boolean().optional()
 }) 
-/*{router.put('/updatePost',auth,async(req:Request,res:Response)=>{     const {postId}=req.body ;     const userId=(req as any).userId
+router.put('/updatePost/:postId',auth,async(req:Request,res:Response)=>{    
+     const {postId}=req.params ;     const userId=(req as any).userId
      const parsedData=postUpdateSchema.parse(req.body);
     const {title,published,content}=parsedData;
     const post=await prisma.post.findUnique({
         where:{
-            id:postId
+            id:Number(postId)
         }
     })
     if(!post){
@@ -129,12 +130,12 @@ const postUpdateSchema=z.object({
      await prisma.post.update({
          data:update,
         where:{
-            id:postId
+            id:Number(postId)
          }
      })
      res.status(200).json('post udated successfully');
 
- })}*/
+ })
 z
 
 

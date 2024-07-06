@@ -103,53 +103,65 @@ router.get('/signin',async (req:Request,res:Response)=>{
 
 })
 // uszer can update email or password
-const updateSchema=z.object({
-    email:z.string().email().optional(),
-    password:z.string(),
-    name:z.string()
+const updateSchema = z.object({
+  name: z.string().optional(),
+  email: z.string().email().optional(),
+  password: z.string().min(6).optional(),
+});
 
-      
-})
+interface CustomRequest extends Request {
+  userId?: number;
+}
 
-router.put('/update',auth,async (req:Request,res:Response)=>{
-   const parsedData=updateSchema.parse(req.body);
-   const {email,name,password}=parsedData;
+router.put('/update', auth, async (req: CustomRequest, res: Response) => {
+  try {
+    const parsedData = updateSchema.parse(req.body);
+    const { email, name, password } = parsedData;
 
-   const id=(req as any).userId;
-   if(!id){
-    return res.status(400).json('something error')
-   }
+    const id = req.userId;
 
-   const user=prisma.user.findUnique({
-    where:{
-        id:id
+    if (!id) {
+      return res.status(400).json({ error: 'User ID is not provided' });
     }
-   })
-   if(!user){
-    return res.status(400).json("user not exist");
 
-   }
+    const user = await prisma.user.findUnique({
+      where: {
+        id: Number(id),
+      },
+    });
 
-   const updateuser:any={}
-   if(name){
-    updateuser.name=name
-   }
-  if(email){
-    updateuser.email=email
-  }
-  if(password){
-    const hashpassword=await bcrypt.hash(password,10);
-    updateuser.passsword=hashpassword
-  }
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const updateUser: {
+      name?: string;
+      email?: string;
+      password?: string;
+    } = {};
+
+    if (name) {
+      updateUser.name = name;
+    }
+    if (email) {
+      updateUser.email = email;
+    }
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updateUser.password = hashedPassword;
+    }
+
     await prisma.user.update({
-        where:{
-         id:id   
-        },
-        data:updateuser
-    })
+      where: {
+        id: Number(id),
+      },
+      data: updateUser,
+    });
 
-  res.status(200).json({message:"record updated successfully"});
-
-
-})
+    res.status(200).json({ message: 'Record updated successfully' });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 export default router;

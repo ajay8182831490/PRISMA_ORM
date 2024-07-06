@@ -23,7 +23,8 @@ const auth = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () 
     }
     try {
         const decode = jwt.verify(token, jwt_secret);
-        req.userId = decode.id;
+        req.userId = decode.userId;
+        console.log(decode);
         next();
     }
     catch (error) {
