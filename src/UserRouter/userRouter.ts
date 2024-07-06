@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import {any, z} from 'zod';
 const  bcrypt =require('bcrypt');
 const  jwt =require('jsonwebtoken');
+const authmidleware=require('../middleware/userMiddleware')
 // signup signinn update 
 
 
@@ -110,7 +111,7 @@ const updateSchema=z.object({
       
 })
 
-router.put('/update',async (req:Request,res:Response)=>{
+router.put('/update',authmidleware,async (req:Request,res:Response)=>{
    const parsedData=updateSchema.parse(req.body);
    const {email,name,password}=parsedData;
 

@@ -18,6 +18,7 @@ const client_1 = require("@prisma/client");
 const zod_1 = require("zod");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const authmidleware = require('../middleware/userMiddleware');
 // signup signinn update 
 const prisma = new client_1.PrismaClient();
 const signupSchema = zod_1.z.object({
@@ -50,9 +51,67 @@ router.post('/signup', (req, res) => __awaiter(void 0, void 0, void 0, function*
     res.status(200).json({ message: "account has created successfully", token: token });
     //here we will  generate the jwt token 
 }));
+const signinSchema = zod_1.z.object({
+    email: zod_1.z.string().email(),
+    password: zod_1.z.string(),
+});
 router.get('/signin', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const parsedData = signinSchema.parse(req.body);
+    const { email, password } = parsedData;
+    // we will check the email exist or not if exisst then we will verify the password after verify the passsword we will generate the token key
+    const existinguser = yield prisma.user.findUnique({
+        where: {
+            email: email
+        }
+    });
+    if (!existinguser) {
+        return res.status(409).json("please enter correct input");
+    }
+    const verify = bcrypt.compare(password, existinguser.password);
+    if (!verify) {
+        return res.status(409).json({ message: "please enter correct passsword" });
+    }
+    const token = yield jwt.sign({ userId: existinguser.id }, process.env.jwt_secret);
+    res.status(200).json({ message: "account has successfully logged in ", token: token });
 }));
-router.put('/update', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    return [];
+// uszer can update email or password
+const updateSchema = zod_1.z.object({
+    email: zod_1.z.string().email().optional(),
+    password: zod_1.z.string(),
+    name: zod_1.z.string()
+});
+router.put('/update', authmidleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const parsedData = updateSchema.parse(req.body);
+    const { email, name, password } = parsedData;
+    const id = req.userId;
+    if (!id) {
+        return res.status(400).json('something error');
+    }
+    const user = prisma.user.findUnique({
+        where: {
+            id: id
+        }
+    });
+    if (!user) {
+        return res.status(400).json("user not exist");
+    }
+    const updateuser = {};
+    if (name) {
+        updateuser.name = name;
+    }
+    if (email) {
+        updateuser.email = email;
+    }
+    if (password) {
+        const hashpassword = yield bcrypt.hash(password, 10);
+        updateuser.passsword = hashpassword;
+    }
+    yield prisma.user.update({
+        where: {
+            id: id
+        },
+        data: updateuser
+    });
+    res.status(200).json({ message: "record updated successfully" });
 }));
 exports.default = router;

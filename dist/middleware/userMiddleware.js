@@ -9,17 +9,25 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const client_1 = require("@prisma/client");
-const prisma = new client_1.PrismaClient();
-function main() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const user = yield prisma.user.create({
-            data: {
-                name: "ajay ",
-                email: "ajay@gmail.com"
-            }
-        });
-        console.log(user);
-    });
+exports.auth = void 0;
+const jwt = require('jsonwebtoken');
+const jwt_secret = process.env.JWT_SECRET;
+if (!jwt_secret) {
+    throw new Error('JWT_SECRET is not defined');
 }
-main();
+const auth = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(' ')[1];
+    if (!token) {
+        return res.status(401).json({ error: "Unauthorized access" });
+    }
+    try {
+        const decode = jwt.verify(token, jwt_secret);
+        req.userId = decode.id;
+        next();
+    }
+    catch (error) {
+        res.status(401).json({ error: "Invalid token" });
+    }
+});
+exports.auth = auth;
