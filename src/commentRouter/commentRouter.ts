@@ -1,6 +1,6 @@
 import express,{  Request,Response} from "express";
 const router=express.Router();
-const authmidleware=require('../middleware/userMiddleware');
+const {auth}=require('../middleware/userMiddleware');
 import { PrismaClient } from "@prisma/client";
 const prisma=new PrismaClient();
 import {z} from 'zod'
@@ -34,7 +34,7 @@ router.get('/comment/:postId',async(req:Request,res:Response)=>{
 const commentSchema = z.object({
   comment: z.string().min(1, "Comment cannot be empty"),
 });
-router.post('/comment/:postId',authmidleware,async(req:Request,res:Response)=>{
+router.post('/comment/:postId',auth,async(req:Request,res:Response)=>{
 
           const {postId}=req.params;
           const userId=(req as any).userId;
@@ -66,7 +66,7 @@ res.status(200).json("comment added successfully")
 
 
 })
-router.delete('/deleteComment/:commentId',authmidleware,async (req:Request,res:Response)=>{
+router.delete('/deleteComment/:commentId',auth,async (req:Request,res:Response)=>{
       const userId=(req as any).userId;
 
       const {commentId}=req.params;

@@ -17,7 +17,7 @@ const express_1 = __importDefault(require("express"));
 const zod_1 = require("zod");
 const prisma = new client_1.PrismaClient();
 const router = express_1.default.Router();
-const authmidleware = require('../middleware/userMiddleware');
+const { auth } = require('../middleware/userMiddleware');
 // post create new post read post user-specific post update post delete post get all post
 // getting all post 
 router.get('/allpost', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -38,7 +38,7 @@ const postSchema = zod_1.z.object({
     content: zod_1.z.string(),
     published: zod_1.z.boolean()
 });
-router.get('/createPost', authmidleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post('/createPost', auth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const parseddata = postSchema.parse(req.body);
     const { title, content, published } = parseddata;
     const userId = req.userId;
@@ -52,7 +52,7 @@ router.get('/createPost', authmidleware, (req, res) => __awaiter(void 0, void 0,
     });
     res.status(200).json(post);
 }));
-router.get('/userPost', authmidleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get('/userPost', auth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.userId;
     const post = yield prisma.post.findMany({ where: {
             authorId: userId
@@ -69,7 +69,7 @@ router.get('/userPost', authmidleware, (req, res) => __awaiter(void 0, void 0, v
     res.status(200).json(post);
 }));
 // delete post
-router.delete('/deletpost', authmidleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.delete('/deletpost', auth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.userId;
     const { postId } = req.body;
     // here we have need to check the author of post should be same as the login user;
@@ -95,38 +95,37 @@ const postUpdateSchema = zod_1.z.object({
     content: zod_1.z.string().optional(),
     published: zod_1.z.boolean().optional()
 });
-router.put('/updatePost', authmidleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { postId } = req.body;
-    const userId = req.userId;
-    const parsedData = postUpdateSchema.parse(req.body);
-    const { title, published, content } = parsedData;
-    const post = yield prisma.post.findUnique({
-        where: {
-            id: postId
+/*{router.put('/updatePost',auth,async(req:Request,res:Response)=>{     const {postId}=req.body ;     const userId=(req as any).userId
+     const parsedData=postUpdateSchema.parse(req.body);
+    const {title,published,content}=parsedData;
+    const post=await prisma.post.findUnique({
+        where:{
+            id:postId
         }
-    });
-    if (!post) {
+    })
+    if(!post){
         return res.status(400).json("post does not exist");
     }
-    if (post.authorId != userId) {
+
+    if(post.authorId!=userId){
         return res.status(400).json("you are not authorize to update the post");
     }
-    const update = {};
-    if (title !== undefined) {
-        update.title = title;
-    }
+   const update: any = {};
+    if (title !== undefined) {       update.title = title;
+   }
     if (content !== undefined) {
-        update.content = content;
+      update.content = content;
+    }     if (published !== undefined) {
+      update.published = published;
     }
-    if (published !== undefined) {
-        update.published = published;
-    }
-    yield prisma.post.update({
-        data: update,
-        where: {
-            id: postId
-        }
-    });
-    res.status(200).json('post udated successfully');
-}));
+     await prisma.post.update({
+         data:update,
+        where:{
+            id:postId
+         }
+     })
+     res.status(200).json('post udated successfully');
+
+ })}*/
+zod_1.z;
 exports.default = router;

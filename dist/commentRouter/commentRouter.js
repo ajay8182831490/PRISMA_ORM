@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const router = express_1.default.Router();
-const authmidleware = require('../middleware/userMiddleware');
+const { auth } = require('../middleware/userMiddleware');
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const zod_1 = require("zod");
@@ -41,7 +41,7 @@ router.get('/comment/:postId', (req, res) => __awaiter(void 0, void 0, void 0, f
 const commentSchema = zod_1.z.object({
     comment: zod_1.z.string().min(1, "Comment cannot be empty"),
 });
-router.post('/comment/:postId', authmidleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post('/comment/:postId', auth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { postId } = req.params;
     const userId = req.userId;
     const post = yield prisma.post.findUnique({
@@ -63,7 +63,7 @@ router.post('/comment/:postId', authmidleware, (req, res) => __awaiter(void 0, v
     });
     res.status(200).json("comment added successfully");
 }));
-router.delete('/deleteComment/:commentId', authmidleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.delete('/deleteComment/:commentId', auth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.userId;
     const { commentId } = req.params;
     const comment = yield prisma.comment.findUnique({ where: {

@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
+
 const  jwt =require('jsonwebtoken');
 
-const jwt_secret = process.env.JWT_SECRET as string;
+const jwt_secret="ajay"
 
 if (!jwt_secret) {
   throw new Error('JWT_SECRET is not defined');

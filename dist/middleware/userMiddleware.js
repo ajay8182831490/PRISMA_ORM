@@ -11,7 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.auth = void 0;
 const jwt = require('jsonwebtoken');
-const jwt_secret = process.env.JWT_SECRET;
+const jwt_secret = "ajay";
 if (!jwt_secret) {
     throw new Error('JWT_SECRET is not defined');
 }

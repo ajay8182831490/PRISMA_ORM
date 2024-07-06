@@ -18,7 +18,7 @@ const client_1 = require("@prisma/client");
 const zod_1 = require("zod");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const authmidleware = require('../middleware/userMiddleware');
+const { auth } = require('../middleware/userMiddleware');
 // signup signinn update 
 const prisma = new client_1.PrismaClient();
 const signupSchema = zod_1.z.object({
@@ -80,7 +80,7 @@ const updateSchema = zod_1.z.object({
     password: zod_1.z.string(),
     name: zod_1.z.string()
 });
-router.put('/update', authmidleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.put('/update', auth, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const parsedData = updateSchema.parse(req.body);
     const { email, name, password } = parsedData;
     const id = req.userId;
